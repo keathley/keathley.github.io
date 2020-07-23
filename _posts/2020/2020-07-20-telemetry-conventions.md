@@ -11,6 +11,9 @@ have started to adopt it, and that’s a good thing. But, there’s still
 a lot of inconsistency in how telemetry is used across projects. I thought
 it would be good to write up some of the conventions that I've been using.
 
+I'm treating this as a living document. I expect that things may change
+and I'll try to capture those changes here.
+
 ## Keep your names consistent
 
 You should choose event names and stick to them. Do not allow users to
