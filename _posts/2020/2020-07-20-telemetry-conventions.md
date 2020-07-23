@@ -1,6 +1,6 @@
 ---
 layout: post
-title: "Teletry Conventions"
+title: "Telemetry Conventions"
 date:   2020-07-20 10:00:00
 categories: elixir telemetry
 ---
