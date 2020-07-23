@@ -63,6 +63,12 @@ executing. You want to support as many use cases as you can (including all
 of the use cases you haven't thought of yet). So lean towards providing
 more metadata in your events than you think you need to.
 
+## Allow users to add more metadata
+
+Speaking of metadata, its totally reasonable for you to allow users to add
+additional information to an events metadata. This is often useful for users who
+want to add additional context or business related metrics to each event.
+
 ## Don't rely on middleware to emit your events
 
 A lot of libraries use middleware to emit telemetry events. I have some feedback on this pattern:
@@ -73,17 +79,18 @@ Unless there's no other way to provide telemetry, you should be executing
 your events from your core library code. The only reasons to use
 middleware would be for users to opt-in to telemetry or for customization
 of your telemetry events. But, telemetry is _already_ opt-in. Users have
-to attach handlers to your events. So executing an event with no handler
-is low-cost. And as I've already discussed, allowing users to customize
-the events isn't something you should do anyway (although, allowing users
-to customize the event metadata is totally reasonable).
+to attach handlers to your events and executing an event with no handler is low-cost.
 
-Forcing your users to add middleware to get telemetry events means that
-there's less consistency about what those events are capturing and its
-more likely that your spans won't be measuring the entire duration of the
-function call. Using middleware for this is a lot of complexity for no
-real benefits. If you have no other way to solve the problem, by all
-means, provide a middleware. But otherwise, avoid it.
+Allowing users to customize the events isn't something you should do,
+as we've already discussed.
+
+A major problem with emiting telemetry in middleware is that it necessarily means
+that you aren't getting the full trace. You won't be capturing the time
+between your library being called and your library calling the telemetry middleware.
+This problem gets worse if the user happens to place the middleware after other, potentially expensive, middleware.
+
+It's less precise and only serves to make your users lives more complicated. If
+you have no other way to provide telemetry from your library, by all means, use middleware. But otherwise, avoid it.
 
 ## Durations should be in native units (or explicitly stated)
 
@@ -155,8 +162,9 @@ Your telemetry is an API and breaking it is probably more costly than if
 you break some sort of functional interface. At least if you break your
 functions the user of your library is likely to notice it before they
 deploy to production. If you make backward-incompatible changes to your
-telemetry events, the user probably has no clue. Congrats, you silently
-broke your user's monitors and dashboards.
+telemetry events, the user probably has no clue and won't discover it until
+they've deployed to production and realize that their monitors and dashboards
+are now broken.
 
 Luckily, it’s pretty straightforward to test your telemetry events. I typically
 do something like this (which iirc. is a pattern I stole from Redix’s test suite).
