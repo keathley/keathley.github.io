@@ -5,11 +5,6 @@ $base-color: #292929;
 $link-color: #df2050;
 $break: 44rem;
 
-@font-face {
-  font-family: "FiraCode";
-  src: url('/assets/fonts/FiraCode-Regular.otf') format("opentype");
-}
-
 *,
 *:after,
 *:before { box-sizing: border-box; }
@@ -157,7 +152,13 @@ p {
   font-size: 1.3rem;
   line-height: 1.5;
 
-  > a { box-shadow: 0 3px #CCCCCC; }
+  > a {
+    box-shadow: 0 3px #CCCCCC;
+
+    &:hover {
+      box-shadow: 0 3px $link-color;
+    }
+  }
 
   > code {
     padding: 0.2em;
@@ -179,7 +180,7 @@ a {
   font-weight: 600;
   text-decoration: none;
   background-color: transparent;
-  transition: color 0.1s ease;
+  // transition: color 0.1s ease;
 
   &:hover { color: $link-color; }
 }
@@ -197,11 +198,8 @@ a > img {
 pre > code { display: block; }
 
 code {
-  font-family: "FiraCode", "Menlo", Inconsolata, "Fira Mono", "Source Code Pro", monospace;
+  font-family: "Menlo", Inconsolata, "Fira Mono", "Source Code Pro", monospace;
   font-size: 0.9rem;
-  font-feature-settings: "calt" 1;
-  font-variant-ligatures: contextual;
-  text-rendering: optimizeLegibility;
   line-height: 160%;
   overflow-x: auto;
   padding: 0.8rem 1.1rem;
@@ -395,7 +393,14 @@ aside {
 
 .post-body > .title {
   text-align: left;
-  margin-bottom: 5rem;
+  margin-bottom: 0;
+  // margin-bottom: 5rem;
+}
+
+.post-body > .title ~ .date {
+  font-weight: normal;
+  margin-top: 0;
+  margin-bottom: 3rem;
 }
 
 blockquote {
