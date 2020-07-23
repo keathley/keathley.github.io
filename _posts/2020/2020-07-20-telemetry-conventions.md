@@ -16,35 +16,29 @@ and I'll try to capture those changes here.
 
 ## Keep your names consistent
 
-You should choose event names and stick to them. Do not allow users to
-customize the event names or change them based on the module that is using
-them. `[:my_lib, :call, :start]` is consistent and makes building tooling
-really simple. Don’t do things like `[:<users_repo_name>, :call, :start]`.
-Breaking consistency in this way makes it harder to build
-consistent monitoring and tracing tools around your library.
+Your events should all follow a naming scheme like: `[:my_lib, :function_call, ...]`.
+Do not allow users to customize the event names in any way and don't change them based
+on whatever module is `use`-ing your library. If you need to differentiate
+between multiple instances of your library, you should provide that
+information in the event's metadata.
 
-Stick to a basic naming scheme: `[:app_name, :function_call, ...]` and
-you’ll be good to go.
-
-If you need to differentiate between multiple instances of your library
-you should include relevant information in the event's metadata. I had to
-do this for [Regulator](https://github.com/keathley/regulator). When we
-execute telemetry events, the name of each regulator is provided in the
-metadata.
+Keeping your event names consistent makes it trivial for monitoring tools to
+start capturing your events and exporting them as time-series, logs, APM, or
+whatever else.
 
 ## Use spans
 
 The telemetry events you produce should be usable in several contexts. One
 of the best ways to do this is to use "spans". The notion of a span is
-straightforward. When you start a function call you execute a `[:app,
+straightforward. When you start a function call you execute a `[:lib,
 function, :start]` event. When you finish the function call you execute
-`[:app, :function, :stop]` event. If something inside the function call
-raises or throws you execute an `[:app, :function, :exception]` event.
+a `[:lib, :function, :stop]` event. If something inside the function call
+raises or throws you execute a `[:lib, :function, :exception]` event.
 
 These 3 events will cover at least 90% of your user's needs. If your
 consumer wants to support APM or tracing they can do that by listening to
 all events. If they just want to emit time series, they only need to
-listen to the stop and exception events. 
+listen to the stop and exception events.
 
 There are times when spans won’t be enough, and when that happens feel
 free to execute a one-off event. Otherwise, just use spans.
@@ -78,19 +72,19 @@ Stop it.
 Unless there's no other way to provide telemetry, you should be executing
 your events from your core library code. The only reasons to use
 middleware would be for users to opt-in to telemetry or for customization
-of your telemetry events. But, telemetry is _already_ opt-in. Users have
+of your telemetry event names. But, telemetry is _already_ opt-in. Users have
 to attach handlers to your events and executing an event with no handler is low-cost.
 
-Allowing users to customize the events isn't something you should do,
+Allowing users to customize the event names isn't something you should do,
 as we've already discussed.
 
 A major problem with emiting telemetry in middleware is that it necessarily means
 that you aren't getting the full trace. You won't be capturing the time
 between your library being called and your library calling the telemetry middleware.
-This problem gets worse if the user happens to place the middleware after other, potentially expensive, middleware.
-
-Middleware is less precise and only serves to make your users lives more complicated. If
-you have no other way to provide telemetry from your library, by all means, use middleware. But otherwise, avoid it.
+This problem gets worse if the user happens to place the middleware after
+other, potentially expensive, middleware. The end result is a solution that is
+less precise and error prone. If you have no other solution, by all means, provide
+a middleware. But otherwise, avoid it.
 
 ## Durations should be in native units (or explicitly stated)
 
