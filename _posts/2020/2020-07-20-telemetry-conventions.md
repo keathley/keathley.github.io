@@ -89,7 +89,7 @@ that you aren't getting the full trace. You won't be capturing the time
 between your library being called and your library calling the telemetry middleware.
 This problem gets worse if the user happens to place the middleware after other, potentially expensive, middleware.
 
-It's less precise and only serves to make your users lives more complicated. If
+Middleware is less precise and only serves to make your users lives more complicated. If
 you have no other way to provide telemetry from your library, by all means, use middleware. But otherwise, avoid it.
 
 ## Durations should be in native units (or explicitly stated)
