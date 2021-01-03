@@ -1,9 +1,20 @@
 ---
 ---
-// $base-color: #424242;
 $base-color: #292929;
-$link-color: #df2050;
 $break: 44rem;
+
+:root {
+  --text-color: #292929;
+  --link-color: #df2050;
+  --background-color: #fff;
+
+  @media (prefers-color-scheme: dark) {
+    --text-color: rgb(201, 209, 217);
+    --link-color: rgb(163, 100, 232);
+    --background-color: #0d1117;
+    // --link-color: rgb(210, 168, 255);
+  }
+}
 
 *,
 *:after,
@@ -26,6 +37,13 @@ body {
 
   @media screen and (min-width: $break) {
     font-size: 20px;
+  }
+
+  // Dark Mode
+  @media (prefers-color-scheme: dark) {
+    // background-color: rgb(13, 17, 23);
+    background-color: #0d1117;
+    color: rgb(201, 209, 217);
   }
 }
 
@@ -71,7 +89,7 @@ body {
   .header a {
     color: white;
 
-    &:hover { color: $link-color; }
+    &:hover { color: var(--link-color); }
   }
 
   @media screen and (min-width: $break) {
@@ -100,7 +118,7 @@ body {
     padding-right: 2rem;
     padding-left: 2rem;
     font-size: 2rem;
-    color: white;
+    // color: white;
     background-color: #2f2f2f;
     display: inline-block;
 
@@ -156,16 +174,22 @@ p {
     box-shadow: 0 3px #CCCCCC;
 
     &:hover {
-      box-shadow: 0 3px $link-color;
+      box-shadow: 0 3px var(--link-color);
     }
   }
 
   > code {
     padding: 0.2em;
-    color: $link-color;
+    color: var(--link-color);
     background: #f2f2f2;
     border: 1px solid #ddd;
     border-radius: 2px;
+
+    @media (prefers-color-scheme: dark) {
+      background: rgb(22, 27, 34);
+      border: 0;
+      color: rgb(210, 168, 255);
+    }
   }
 }
 
@@ -182,7 +206,11 @@ a {
   background-color: transparent;
   // transition: color 0.1s ease;
 
-  &:hover { color: $link-color; }
+  &:hover { color: var(--link-color); }
+
+  @media (prefers-color-scheme: dark) {
+    color: rgb(201, 209, 217);
+  }
 }
 
 a > img {
@@ -204,6 +232,12 @@ code {
   overflow-x: auto;
   padding: 0.8rem 1.1rem;
   outline: none;
+
+  @media (prefers-color-scheme: dark) {
+    background: rgb(22, 27, 34);
+    // border: 0;
+    // color: rgb(210, 168, 255);
+  }
 }
 
 .highlighter-rouge { margin-bottom: 2.5rem; }
@@ -287,7 +321,7 @@ header {
   a {
     margin-right: 6px;
     margin-left: 6px;
-    color: $base-color;
+    // color: $base-color;
     font-weight: 300;
   }
 }
@@ -346,6 +380,10 @@ aside {
     border-bottom: 1px solid #f0f0f0;
 
     + .post { margin-top: 2.2em; }
+
+    @media (prefers-color-scheme: dark) {
+      border-color: rgb(48, 54, 61);
+    }
   }
 
   .post-title {
@@ -354,10 +392,10 @@ aside {
     line-height: 1.3em;
 
     a {
-      color: $base-color;
+      // color: $base-color;
       text-decoration: none;
 
-      &:hover { color: $link-color; }
+      &:hover { color: var(--link-color); }
     }
   }
 
