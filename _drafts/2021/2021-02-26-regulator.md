@@ -49,9 +49,9 @@ you need actual math, it's typically not worse than algebra. Let's look at an ex
 
 Let's imagine that Zeus receives 1 request per second. In that one request, Zeus needs to call Athena and Athena takes 100ms on average, to process the request. In technical terms, we'd say that Zeus's *Arrival Rate* is 1 RPS and its *work time* is 0.1 S. Because Athena's work time is so much lower than the rate of arrival, Zeus will only ever be processing 1 request at a time. In queueing terms, we'd say that the number of items in the queue is 0.
 
-But, let's see what happens if the arrival rate increases to 10 RPS. We don't know _how_ these requests arrive yet - all at once, one at a time, spread out over a Pareto distribution (spoilers: it's this one) - but we're not worried about that.
+But, let's see what happens if the arrival rate increases to 10 RPS. We don't know _how_ these requests arrive yet - all at once, one at a time, spread out over a Poisson distribution (spoilers: it's this one) - but we're not worried about that.
 
-Question: On *average*, given an arrival rate of 10 RPS and a work time of 0.1 seconds, how many requests are waiting in LB waiting to be fulfilled over a 1-second window?
+Question: On *average*, given an arrival rate of 10 RPS and a work time of 0.1 seconds, how many requests are waiting in Zeus waiting to be fulfilled over a 1-second window?
 
 Think about it for a bit...
 
