@@ -105,9 +105,43 @@ Ideally, we should be choosing the second option. Also, not explicitly choosing 
 
 Dropping work like this is referred to as "load shedding". Which really means dropping the work time so low that it avoids overload. These days, our tool of choice for load shedding is Regulator.
 
-## Regulator implementation details
+## A quick aside on why autoscaling is not a solution
 
-Regulator is based on the same techniques that power the internet's networks. These techniques are often referred to as "adaptive concurrency" or "adaptive capacity" in the literature. It's "adaptive" because the system regularly makes changes based on observed values. 
+Typically this is around the time that people start claiming that these problems go away if you just use The Cloud and The Magic of Autoscaling.
+
+Firstly, if anyone ever uses words like "you should just" or "why can't you just"
+it typically indicates that the person in question doesn't really understand the
+problem domain.
+
+Secondly, autoscaling is not a solution to these problems because the premise
+of that solution is predicated on the idea that the bottleneck in question can
+be infinitely scaled horizontally. Which isn't true. It does tend to be the case
+that in single threaded runtimes such as ruby and python, adding more application
+instances is a winning strategy since it extends the largest bottleneck; the
+application runtime that is running all of your most complex code.
+
+But lets say that the latency is increasing in a database. As we've already seen,
+this increased latency translates directly into queueing in application code. That queueing
+will tend to cause increased sojurn time (the time it takes to get through the queue),
+increased CPU, and increased memory, all of which are typically used as signals to scale
+up the application servers. Adding more application servers typically results in
+*even more pressure on the database*. Meaning, you just made your problem **worse**.
+
+At this point, the naysayers will make an argument for using dynamo claiming its "infinitely
+scalable" or some such. My response to them: No it isn't. Any of these things can fail.
+Your network might introduce lag. Maybe your client disconnects from your dynamo table
+and is continually trying to reconnect causing timeouts. Maybe you're misconfigured.
+Maybe someone at AWS symlinked the wrong directory again.
+
+We're talking about building resilient systems here. You can't count on
+a vendor to provide that resilience.
+
+Autoscaling is a cost saving measure only. Always keep that in mind and you'll
+be better off.
+
+## How does Regulator do?
+
+Regulator is based on the same techniques that power the internet's networks. These techniques are often referred to as "adaptive concurrency" or "adaptive capacity" in the literature. It's "adaptive" because the system regularly makes changes based on observed values.
 
 Regulator only allows a certain number of _things_ to occur in a system concurrently. For instance, Regulator may have determined that
 Athena can handle 5 requests concurrently. If a 6th request is made before any of the original 5 have been completed, the 6th request will be rejected.
@@ -115,6 +149,17 @@ Athena can handle 5 requests concurrently. If a 6th request is made before any o
 Periodically, Regulator examines the requests its seen and decides whether or not it should allow more or fewer things to happen concurrently. Typically, Regulator is examining signals such as changes in latency, whether an error occurred, how many requests were in-flight at the same time, etc. It does all of this to avoid any requests queueing in the system.
 
 So, in our initial example, if Zeus used a regulator around its calls to Athena, the regulator would see the increase in work time and arrival rate and would begin to reject excess requests to avoid queueing. Because our work time has now dropped by so many orders of magnitude, we can return a 500, or we can return a cached value from memory. Either of these techniques is appropriate and has practically no difference in response time. We've eliminated the central bottleneck and that tends to be Good Enough for eliminating overload.
+
+## Isn't dropping traffic kinda bad?
+
+Dropping traffic isn't ideal. And that's why we're only going to drop as much traffic as required to keep
+the services healthy. Keep in mind, the alternative to not dropping _any_ traffic
+is that we drop *all* traffic. Furthermore, "dropping traffic" in this case doesn't
+have to mean we return a 500. We're just trying to get the work time as low as
+we can. Sometimes it'll be appropriate to return an error. But a lot of the time
+we can respond with cached or stale values. Perhaps we allow part of the request
+to fail and just return a degraded response. Having tools like Regulator provides
+us with options. We can make concious choices about how we allow the system to degrade.
 
 ## Where should I use regulators?
 
@@ -130,3 +175,9 @@ Empirically, we've found that AIMD works well for outbound calls and Gradient wo
 ## So what did we freaking learn here?
 
 I hope that this gives you some intuition about queues and how to protect your system from overload. The Regulator docs provide more specifics on how each limiter works and the various ways that it can be tuned.
+
+If you want to learn more about this here's a list of stuff to check out:
+
+* I gave a talk on regulator specifically at CodeBeam: https://youtu.be/-oQl1xv0hDk
+* Stop Rate Limiting! https://www.youtube.com/watch?v=m64SWl9bfvk
+* Netflix: Performance Under Load - https://netflixtechblog.medium.com/performance-under-load-3e6fa9a60581
