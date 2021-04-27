@@ -242,7 +242,7 @@ Success! We got the correct error.
 
 ## Conclusions
 
-Its arguable that all of this effort was overkill for what ammounted to a one-line fix.
+It's arguable that all of this effort was overkill for what amounted to a one-line fix.
 
 That argument isn't wrong.
 
