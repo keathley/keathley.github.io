@@ -44,7 +44,7 @@ The bad news: no one remembers probability and statistics.
 
 Which makes sense. Who would have thought that a junior year, blow-off math class was going to be the fucking cornerstone of performance optimizations for working-class software wranglers?
 
-The really good news: The math isn't that bad. In fact, most of the time you don't need math as much as you need an *intuition* the math. When
+The really good news: The math isn't that bad. In fact, most of the time you don't need math as much as you need an *intuition* about the math. When
 you need actual math, it's typically not worse than algebra. Let's look at an example to see how this works out.
 
 Let's imagine that Zeus receives 1 request per second. In that one request, Zeus needs to call Athena and Athena takes 100ms on average, to process the request. In technical terms, we'd say that Zeus's *Arrival Rate* is 1 RPS and its *work time* is 0.1 S. Because Athena's work time is so much lower than the rate of arrival, Zeus will only ever be processing 1 request at a time. In queueing terms, we'd say that the number of items in the queue is 0.
