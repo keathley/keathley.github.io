@@ -319,8 +319,8 @@ This is a quick one, but it makes your test failures much more useful.
 
 ```elixir
 # Don't do...
-assert Enum.all?(posts, fn post -> match?(%Post{}, post) end)
+assert Enum.all?(posts, fn post -> %Post{} == post end)
 
 # Do...
-for post <- posts, do: assert match?(%Post{}, post)
+for post <- posts, do: assert %Post{} == post
 ```
