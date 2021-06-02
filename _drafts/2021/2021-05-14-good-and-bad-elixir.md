@@ -5,13 +5,11 @@ date:   2021-05-14 10:00:00
 categories: Elixir Patterns
 ---
 
-I've seen a lot of elixir at this point, both good and bad. Through all of that
-code, I've seen similar patterns that tend to lead to worse code. So I thought
-I would document some of them as well as better alternatives to these patterns.
+I've seen a lot of elixir at this point, both good and bad. Through all of that code, I've seen similar patterns that tend to lead to worse code. So I thought I would document some of them as well as better alternatives to these patterns.
 
 ## Map.get/2 and Keyword.get/2 vs. Access
 
-`Map.get/2` and `Keyword.get/2` unnessarily lock you in to using a specific data structure. This means that if you want to change the type of structure you now need to update all of the call sites. Instead of these functions you should prefer using Access:
+`Map.get/2` and `Keyword.get/2` lock you into using a specific data structure. This means that if you want to change the type of structure you now need to update all of the call sites. Instead of these functions, you should prefer using Access:
 
 ```elixir
 # Don't do
@@ -36,10 +34,7 @@ opts[:foo] || raise ArgumentError, "Expected a `:foo`"
 
 ## Don't pipe results into the next function
 
-Side-effecting functions tend to return "results" like `{:ok, term()} | {:error, term()}`.
-If your dealing with side-effecting functions, don't pipe the results into the
-next function. Its always better to deal with the results directly using either
-`case` or `with`.
+Side-effecting functions tend to return "results" like `{:ok, term()} | {:error, term()}`. If your dealing with side-effecting functions, don't pipe the results into the next function. It's always better to deal with the results directly using either `case` or `with`.
 
 ```elixir
 # Don't do...
@@ -69,16 +64,12 @@ def main do
 end
 ```
 
-If we try to use pipes then each of our individual functions need to handle the
-result of the previous function. Handling each result, couples our functions to
-this specific pipeline. These functions are no longer re-usable in a wider context.
+If we try to use pipes then each of our functions needs to handle the result of the previous function. Handling each result, couples our functions to this specific pipeline. These functions are no longer re-usable in a wider context.
 
-Its also the case that you typically care about handling each error in slightly
-different ways. The only function that really knows how to do that is the callsite,
-so it makes sense to keep this logic in the callsite.
+It's also the case that you typically care about handling each error in slightly different ways. The only function that knows how to handle errors is the call site, so it makes sense to keep this logic in the call site.
 
 If the error handling is quite involved, don't be afraid of using nested case
-statements. Its better to have all of the error handling logic in the calling
+statements. It's better to have all of the error handling logic in the calling
 function then spread out across multiple locations.
 
 ```elixir
@@ -109,14 +100,11 @@ def main(id) do
 end
 ```
 
-This increases the size of the calling function, but the benefit is that you can
-read this entire function and understand what its doing.
+This increases the size of the calling function, but the benefit is that you can read this entire function and understand what it's doing.
 
 # Don't pipe into case statements
 
-I used to be on the fence about this but I've seen this abused to many times
-and in too many ways. Seriously y'all, put down the pipe operator and show a little
-restraint. Its better to assign intermediate steps to a variable.
+I used to be on the fence about this but I've seen this abused too many times and in too many ways. Seriously y'all, put down the pipe operator and show a little restraint. It's better to assign intermediate steps to a variable.
 
 ```elixir
 # Don't do...
@@ -145,12 +133,9 @@ case store_post(changeset) do
 end
 ```
 
-## Don't hide higher order functions
+## Don't hide higher-order functions
 
-Higher order functions are great. But try not to hide them away. If you have a
-callsite that needs to work with collections in a pipeline, you should prefer
-to write functions that operate on a single entity rather then the collection
-itself.
+Higher-order functions are great. But try not to hide them away. If you have a call site that needs to work with collections in a pipeline, you should prefer to write functions that operate on a single entity rather than the collection itself.
 
 ```elixir
 # Don't do...
@@ -180,7 +165,7 @@ defp parse_item(item), do: Jason.decode!(item)
 defp add_item(num, acc), do: num + acc
 ```
 
-Once you done this you may realize that you didn't need the extra functions at all
+Once you've made this change, you may realize that you didn't need the extra functions at all.
 
 ```elixir
 def main do
@@ -190,14 +175,11 @@ def main do
 end
 ```
 
-This decreases the surface area of the API and allows the reader to see exactly
-what's happening in a pipeline without needing to read through multiple other
-functions.
+Removing functions that are called in only a single location is a good way to reduce complexity and decrease the surface area of your API. It also allows the reader to see precisely what is happening in your pipeline.
 
 ## Avoid `else` in `with` blocks
 
-`else` can be useful if you need to log errors or perform some operation that
-is generic across *all* error values being returned. You should not use `else` to handle all potential errors (or even a large number of errors)
+`else` can be useful if you need to log errors or perform some operation that is generic across *all* error values being returned. You should not use `else` to handle all potential errors (or even a large number of errors)
 
 ```elixir
 # Don't do...
@@ -215,8 +197,7 @@ else
 end
 ```
 
-For the same reason, you definitely shouldn't annotate each of your functions
-with a name like so:
+For the same reason, under no circumstances should you annotate your function calls with a name.
 
 ```elixir
 with {:service, {:ok, resp}} <- {:service, call_service(data)},
@@ -233,7 +214,7 @@ else
 end
 ```
 
-Both of these patterns should be avoided. You should build your `with` blocks in such a way that its safe to fall through and return any errors that surface. If you want to unify the various errors that can surface in your application, then its better to define a common error type like so:
+You should build your `with` blocks in such a way that it's safe to fall through and return any errors that surface. If you want to unify the various errors that can surface in your application, then it's better to define a common error type like so:
 
 ```elixir
 defmodule MyApp.Error do
@@ -260,14 +241,11 @@ defp decode(resp) do
 end
 ```
 
-The `with` construct is a nice solution when you have unified errors. If you don't
-have unified errors, then you should use case statements.
+The `with` construct is a nice solution when you have unified errors. If you don't have unified errors, then you should use case statements.
 
 ## State what you want, not what you don't
 
-You should be intentional about what your requiring of your callers and about
-what your callers are returning you. Don't bother checking that a value is not `nil` if
-what you expect it to be is a string:
+You should be intentional about what your requiring of your callers and about what your callers are returning you. Don't bother checking that a value is not `nil` if what you expect it to be is a string:
 
 ```elixir
 # Don't do...
@@ -281,15 +259,11 @@ def call_service(%{req: req}) when is_binary(req) do
 end
 ```
 
-The same is true for `case` statements and `if` statements. Be more explicit about
-what it is you expect. You'd prefer to raise or crash if you receive arguments
-that would violate your expectations.
+The same is true for `case` statements and `if` statements. Be more explicit about what it is you expect. You'd prefer to raise or crash if you receive arguments that would violate your expectations.
 
 ## Only return error tuples when the caller can do something about it.
 
-If its possible for your API to error, and there's nothing that your API's user can do
-to resolve this error, then you should prefer to raise an exception and avoid
-making your user deal with any additional error handling logic.
+If it's possible for your API to error, and there's nothing that the user of your API can do to resolve this error, then you should prefer to raise an exception and avoid making your user deal with any additional error handling logic.
 
 ```elixir
 # Don't do...
@@ -306,7 +280,7 @@ end
 
 # Do...
 def get(table \\ __MODULE__, id) do
-  # If the table doesn't exist there's literally nothing the caller can do
+  # If the table doesn't exist there's nothing the caller can do
   # about it, so just throw.
   :ets.lookup(table, id)
 end
@@ -314,11 +288,8 @@ end
 
 ## Raise exceptions if you receive invalid data.
 
-You should not be afraid of just raising exceptions if a return value or piece of
-data has violated your expectations.
-If your calling a downstream service, and you've agreed that the downstream service
-should always return json, and they return you unparseable json, you should prefer
-to raise. Erlang provides us better mechanism for handling errors.
+You should not be afraid of just raising exceptions if a return value or piece of data has violated your expectations.
+If you're calling a downstream service, and you've agreed that the downstream service should always return JSON, and they return you unparseable JSON, you should prefer to raise. Erlang provides us better mechanisms for handling errors.
 
 ```elixir
 # Don't do...
@@ -340,8 +311,7 @@ def main do
 end
 ```
 
-This allows us to crash the process (which is good), and removes useless error
-handling logic from the function
+This allows us to crash the process (which is good) and removes the useless error handling logic from the function
 
 ## Use `for` when checking collections in tests
 
@@ -354,4 +324,3 @@ assert Enum.all?(posts, fn post -> match?(%Post{}, post) end)
 # Do...
 for post <- posts, do: assert match?(%Post{}, post)
 ```
-
