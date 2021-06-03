@@ -97,7 +97,6 @@ def main(id) do
       else
         {:error, error}
       end
-    end
   end
 end
 ```
