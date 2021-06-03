@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  Good and Bad Elixir
-date:   2021-05-14 10:00:00
+date:   2021-06-02 10:00:00
 categories: Elixir Patterns
 ---
 
