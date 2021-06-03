@@ -22,6 +22,8 @@ opts[:foo]
 
 ## Using access over `fetch!`
 
+You should also avoid `fetch!` functions for similar reasons.
+
 ```elixir
 opts = %{}
 
@@ -102,7 +104,7 @@ end
 
 This increases the size of the calling function, but the benefit is that you can read this entire function and understand what it's doing.
 
-# Don't pipe into case statements
+## Don't pipe into case statements
 
 I used to be on the fence about this but I've seen this abused too many times and in too many ways. Seriously y'all, put down the pipe operator and show a little restraint. It's better to assign intermediate steps to a variable.
 
