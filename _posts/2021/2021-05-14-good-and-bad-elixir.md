@@ -20,20 +20,6 @@ Map.get(opts, :foo)
 opts[:foo]
 ```
 
-## Using access over `fetch!`
-
-You should also avoid `fetch!` functions for similar reasons.
-
-```elixir
-opts = %{}
-
-# Don't do...
-Map.fetch!(opts, :foo)
-
-# Do...
-opts[:foo] || raise ArgumentError, "Expected a `:foo`"
-```
-
 ## Don't pipe results into the next function
 
 Side-effecting functions tend to return "results" like `{:ok, term()} | {:error, term()}`. If your dealing with side-effecting functions, don't pipe the results into the next function. It's always better to deal with the results directly using either `case` or `with`.
