@@ -52,13 +52,12 @@ def main do
 end
 ```
 
-If we try to use pipes then each of our functions needs to handle the result of the previous function. Handling each result, couples our functions to this specific pipeline. These functions are no longer re-usable in a wider context.
+When we were using pipes, each function was required to handle the result of the previous function. By forcing each function to deal with results we made them less re-usable. On top of that, we were coupling them to the order that they were called in the pipeline.
 
-It's also the case that you typically care about handling each error in slightly different ways. The only function that knows how to handle errors is the call site, so it makes sense to keep this logic in the call site.
+Another problem with the pipeline approach is that it tends to assume that errors can be handled in a generic way. But, this assumption is often incorrect.
+When dealing with side-effects, the only function that has enough information to decide what to do with an error is the calling function. In many systems, the error cases are just as important - if not more important - then the "happy path" case. The error cases are where your going to have to perform fallbacks or graceful degredation.
 
-If the error handling is quite involved, don't be afraid of using nested case
-statements. It's better to have all of the error handling logic in the calling
-function then spread out across multiple locations.
+If your in a situation where errors are a key part of your functions control flow, then its best to keep all of the error handling in the calling function using `case` statements.
 
 ```elixir
 # Do...
@@ -87,11 +86,11 @@ def main(id) do
 end
 ```
 
-This increases the size of the calling function, but the benefit is that you can read this entire function and understand what it's doing.
+This increases the size of the calling function, but the benefit is that you can read this entire function and understand how its handling both good and bad situations.
 
 ## Don't pipe into case statements
 
-I used to be on the fence about this but I've seen this abused too many times and in too many ways. Seriously y'all, put down the pipe operator and show a little restraint. It's better to assign intermediate steps to a variable.
+I used to be on the fence about piping into case statements, but I've seen this pattern abused too many times and in too many ways. Seriously y'all, put down the pipe operator and show a little restraint. If you find yourself piping into case, its almost always better to assign intermediate steps to a variable instead
 
 ```elixir
 # Don't do...
@@ -107,9 +106,7 @@ end
 
 # Do...
 
-changeset =
-  attrs
-  |> build_post()
+changeset = build_post(attrs)
 
 case store_post(changeset) do
   {:ok, post} ->
@@ -122,7 +119,7 @@ end
 
 ## Don't hide higher-order functions
 
-Higher-order functions are great. But try not to hide them away. If you have a call site that needs to work with collections in a pipeline, you should prefer to write functions that operate on a single entity rather than the collection itself.
+Higher-order functions are great, so try not to hide them away. If you're working with collections, you should prefer to write functions that operate on a single entity rather than the collection itself. Then you can use higher order functions directly in your pipeline.
 
 ```elixir
 # Don't do...
@@ -133,7 +130,7 @@ def main do
 end
 
 def parse_items(list) do
-  Enum.map(list, &Jason.decode!/1)
+  Enum.map(list, &String.to_ingeter/1)
 end
 
 def add_items(list) do
@@ -147,26 +144,28 @@ def main do
   |> Enum.reduce(0, &add_item/2)
 end
 
-defp parse_item(item), do: Jason.decode!(item)
+defp parse_item(item), do: String.to_integer(item)
 
 defp add_item(num, acc), do: num + acc
 ```
 
-Once you've made this change, you may realize that you didn't need the extra functions at all.
+With this change our `parse_item` and `add_item` functions become re-usable in a wider set of contexts. These functions can now be used on a single item or can be lifted into the context of `Stream`, `Enum`, `Task`, or any number of other uses. Hiding this logic away from the caller is a worse design because it couples the function to its callsite and makes it less re-usable. Ideally our APIs and the functions that make up those APIs are re-usable in a wide range of contexts.
+
+Another benefit of this change is that better solutions may reveal themselves. In this case, we may decide that we don't need the named functions at all and can use anonymous functions instead. We realize that we don't need the `reduce` and can use `sum` instead.
 
 ```elixir
 def main do
   collection
-  |> Enum.map(&Jason.decode!/1)
-  |> Enum.reduce(0, & &1 + &2)
+  |> Enum.map(&String.to_integer/1)
+  |> Enum.sum()
 end
 ```
 
-Removing functions that are called in only a single location is a good way to reduce complexity and decrease the surface area of your API. It also allows the reader to see precisely what is happening in your pipeline.
+This final step may not always be the right choice. It depends on how much work your functions are doing. But, as a general rule, you should strive to eliminate functions that only have a single call site. Even though there's no dedicated names for these functions, the final version is no less "readable" then when we started. An Elixir programmer can still look at this series of steps and understand that the goal here is to convert a collection of strings into integers and then sum those integers. And, they can understand this without needing to read any other functions along the way.
 
 ## Avoid `else` in `with` blocks
 
-`else` can be useful if you need to log errors or perform some operation that is generic across *all* error values being returned. You should not use `else` to handle all potential errors (or even a large number of errors)
+`else` can be useful if you need to perform an operation that is generic across *all* error values being returned. You should not use `else` to handle all potential errors (or even a large number of errors).
 
 ```elixir
 # Don't do...
@@ -184,7 +183,7 @@ else
 end
 ```
 
-For the same reason, under no circumstances should you annotate your function calls with a name.
+For the same reason, under no circumstances should you annotate your function calls with a name just so you can differentiate between them.
 
 ```elixir
 with {:service, {:ok, resp}} <- {:service, call_service(data)},
@@ -201,14 +200,24 @@ else
 end
 ```
 
-You should build your `with` blocks in such a way that it's safe to fall through and return any errors that surface. If you want to unify the various errors that can surface in your application, then it's better to define a common error type like so:
+If you find yourself doing this it means that the error conditions matter. Which means that you don't want `with` at all. You want `case`.
+
+`with` is best used when you can fall through at any point without worrying about the specific error or contrary pattern. A good way to create a more unified way to deal with errors is to build a common error type like so:
 
 ```elixir
 defmodule MyApp.Error do
-  defexception [:msg, :meta]
+  defexception [:code, :msg, :meta]
 
-  def new(msg, meta \\ %{}) when is_binary(msg) do
-    %__MODULE__{msg: msg, meta: Map.new(meta)}
+  def new(code, msg, meta) when is_binary(msg) do
+    %__MODULE__{code: code, msg: msg, meta: Map.new(meta)}
+  end
+
+  def not_found(msg, meta \\ %{}) do
+    new(:not_found, msg, meta)
+  end
+
+  def internal(msg, meta \\ %{}) do
+    new(:internal, msg, meta)
   end
 end
 
@@ -223,12 +232,19 @@ end
 # We wrap the result of Jason.decode in our own custom error type
 defp decode(resp) do
   with {:error, e} <- Jason.decode(resp) do
-    {:error, Error.new("could not decode: #{inspect resp}")}
+    {:error, Error.internal("could not decode: #{inspect resp}")}
   end
 end
 ```
 
-The `with` construct is a nice solution when you have unified errors. If you don't have unified errors, then you should use case statements.
+This method provides you a struct that you can use to render various error messages from a phoenix controller or RPC handler or anywhere else that you care about. Because the struct your using is an exception, the caller can also choose to raise the error and you'll get nice error messages.
+
+```elixir
+case main() do
+  {:ok, _} -> :ok
+  {:error, e} -> raise e
+end
+```
 
 ## State what you want, not what you don't
 
