@@ -130,7 +130,7 @@ def main do
 end
 
 def parse_items(list) do
-  Enum.map(list, &String.to_ingeter/1)
+  Enum.map(list, &String.to_integer/1)
 end
 
 def add_items(list) do
