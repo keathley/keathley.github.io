@@ -6,7 +6,7 @@ categories: Elixir Patterns
 ---
 
 I've wanted a good way to test READMEs in elixir. I started building something myself
-before my good friend [Wojtek]() pointed out that there was a simple solution.
+before my good friend [Wojtek](https://twitter.com/wojtekmach) pointed out that there was a simple solution.
 
 I like to use the README or at least a section of the README as the module doc
 for the main module in my libraries. Typically that looks something like this:
